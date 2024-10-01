@@ -77,7 +77,6 @@ async def websocket_endpoint(websocket: WebSocket):
                         await websocket_manager.send_data(websocket, session_obj)
 
                 if action == "user_input":
-
                      # print("user input received")
                     response = await chat_manager.get_response(message)
                     # print(response)

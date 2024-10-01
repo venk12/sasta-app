@@ -4,8 +4,11 @@ import pandas as pd
 
 from langchain_core.messages import HumanMessage, AIMessage, SystemMessage
 from langchain_groq import ChatGroq
+from app.prompt_manager import GroceryList
 
 from app.utils import generate_random_session_id
+from langchain_core.output_parsers import JsonOutputParser
+from langchain_core.prompts import PromptTemplate
 # from langchain_huggingface import HuggingFaceEmbeddings
 
 # from pydantic import BaseModel  # Update this import
@@ -19,20 +22,27 @@ class ChatManager:
         # Get the absolute path to the CSV file
         self.model = ChatGroq(temperature=0.3, model_name="llama-3.1-70b-versatile", api_key=self.key)
         self.session_id = generate_random_session_id()
-        self.instructions = " You are a resourceful virtual grocery shopping assistant speaks usually in english" + \
-                            " Your job is to understand the specific needs of the user. If the request is generic, ask for more details" + \
-                            " You would have to conver the user request into a table of items (in dutch), items (in english) and their quantities" + \
-                            " Once you have the specific details, provide the lowest price for the items that the user wants to buy. " + \
-                            " You specialize in finding the best prices and deals from local supermarkets in the Netherlands," + \
-                            " including Albert Heijn, ALDI, Jumbo, Lidl, Dirk." + \
-                            " You can receive requests of two kinds." + \
-                            " Sometime the user will give you a receipe/receipes, in that case, you should list down all the groceries required ( this one should be in dutch) for making that dish(es)for 2 people" + \
-                            " In such cases, always produce a list ingredients , quantity (in grams, liters or stuks or other units) and ask the user to confirm." + \
-                            " The header should be in english, the content should be in dutch. If there are" + \
-                            " changes accomodate that through conversation. Wait for user to confirm the ingredients . " + \
-                            " Respond in markdown format so that its easy to parse."
+        self.instructions = f"""You are a resourceful virtual grocery shopping assistant. 
+                            Your job is to understand the specific needs of the user. If the request is generic, ask for more details. 
+                            You would have to convert the user request into a table cantaining 
+                            name of items (in Dutch), name of items (in English), and their quantities. 
+                            
+                            Once you have the specific details, provide the lowest price for the items that the user wants to buy. 
+                            You specialize in finding the best prices and deals from local supermarkets in the Netherlands, 
+                            including Albert Heijn, ALDI, Jumbo, Lidl, Dirk. 
+
+                            You can receive requests of two kinds:
+                            Sometimes the user will give you a recipe/recipes; in that case, you should list down all the groceries required 
+                            (this one should be in Dutch) for making that dish(es) for 2 people. In such cases, always produce 
+                            a list of ingredients, quantity (in grams, liters, or stuks or other units), and ask the user to confirm.
+
+                            Sometimes the user will give an item/ a list of items; in that case, ask specific questions about quantity/brand preference etc.
+                            create a table of ingredients (in dutch), ingredients (in english), (in grams, liters, or stuks or other units), and ask the user to confirm.
+
+                            In both cases the table header should be in English. If there are changes, accommodate that through conversation.
+                            Wait for the user to confirm the ingredients. 
+                            Respond in english and strictly use markdown format for the response so that it's easy to parse."""
         
-    
     
     def gen_agent_instruction(self):
         return [SystemMessage(
@@ -40,15 +50,34 @@ class ChatManager:
                         {self.instructions} """
         )]
     
+    def gen_product_finder_agent_instruction(self):
+        return 
+    
     def get_session_id(self):
         return self.session_id
     
     async def get_response(self, new_chat):
         await self.update_chat_human(HumanMessage(content=new_chat['value']))
         agent_response = await self.model.ainvoke(self.gen_agent_instruction() + self.chat_queue)
+        print(self.chat_queue)
+
+        # # New prompt for receipe
+        # parser = JsonOutputParser(pydantic_object=GroceryList)
+
+        # prompt = PromptTemplate(
+        #     template="You are a product helper agent. Your job is to take a the chat history as input"+
+        #       "and provide a grocery list as output. Format your response as a JSON object with the following schema: \n{format_instructions}\n" +
+        #       "Here is the input list of groceries/receipe from the user: \n{query}\n",
+        #     input_variables=["query"],
+        #     partial_variables={"format_instructions": parser.get_format_instructions()},
+        # )
+
+        # chain = prompt | self.model | parser
+
+        # response =  await chain.ainvoke({"query": new_chat['value']})
+        # print(response)
 
         await self.update_chat_bot(AIMessage(content=agent_response.content))
-
         return agent_response.content
     
     async def update_chat_human(self, new_chat):

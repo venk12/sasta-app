@@ -8,7 +8,7 @@ const UserMessage = ({ content }) => (
       <div
         className="flex items-left max-w-xs bg-blue-500 text-white p-3 rounded-lg shadow"
       >
-        <p className="text-sm">{content}</p>
+        <p className="text-m">{content}</p>
       </div>
       <div className="flex-shrink-0 ml-2">
         <FontAwesomeIcon icon={faUser} className="text-gray-500" />
