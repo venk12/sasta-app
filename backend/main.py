@@ -1,4 +1,5 @@
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException
+from fastapi.params import Body
 from pydantic import BaseModel
 from app.maps import geocode_postal_code, generate_map_html
 import pandas as pd
@@ -23,7 +24,12 @@ class MapRequest(BaseModel):
     api_key: str
 
 class ChatRequest(BaseModel):
-    message: str
+    product_name: str
+    quantity: str
+
+class SearchRequest(BaseModel):
+    product_name: str
+    quantity: str
 
 @app.get("/nearest_stores")
 async def get_nearest_stores_map(postal_code):
@@ -49,8 +55,16 @@ async def get_similar_entries(query):
 
 @app.get("/embedding")
 async def get_embedding():
-    
+    # 
     return upload_manager.get_data()
+
+@app.post("/search/")
+async def search_products_from_db(request: SearchRequest = Body(...)):
+    product_name = request.product_name
+    quantity = request.quantity
+    
+    print(product_name, quantity)
+    return product_name
 
 
 @app.websocket("/ws")
