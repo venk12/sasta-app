@@ -22,7 +22,7 @@ const MessageInput = ({sendSocketMessage}) => {
     };
 
     return (
-        <form onSubmit={handleSubmit} className="flex items-center p-4 text-l">
+        <form onSubmit={handleSubmit} autoComplete='off' className="flex items-center p-4 text-l">
           {/* {isUtteranceEnd && (
             <svg className='mx-2' width="40" height="40" viewBox="0 0 200 200">
               <circle

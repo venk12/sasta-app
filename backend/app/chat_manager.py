@@ -6,7 +6,7 @@ from langchain_core.messages import HumanMessage, AIMessage, SystemMessage
 from langchain_groq import ChatGroq
 from app.prompt_manager import GroceryList
 
-from app.utils import generate_random_session_id
+from app.utils import generate_random_session_id, grocery_categories
 from langchain_core.output_parsers import JsonOutputParser
 from langchain_core.prompts import PromptTemplate
 # from langchain_huggingface import HuggingFaceEmbeddings
@@ -60,6 +60,17 @@ class ChatManager:
         await self.update_chat_human(HumanMessage(content=new_chat['value']))
         agent_response = await self.model.ainvoke(self.gen_agent_instruction() + self.chat_queue)
         print(self.chat_queue)
+
+    async def get_std_category(self, product_name):
+        agent_request = f"You are a data operator. I want you to take a product_name as " \
+                "input and give me which standard category (given) it belongs to. " \
+                "Just give me the most appropriate standard category and nothing more as response: " \
+                "Here is the product name: " + product_name + \
+                " Here are the standard Categories: " + grocery_categories
+        
+        agent_response = await self.model.ainvoke(agent_request)
+        print(agent_response.content)
+        return agent_response.content
 
         # # New prompt for receipe
         # parser = JsonOutputParser(pydantic_object=GroceryList)

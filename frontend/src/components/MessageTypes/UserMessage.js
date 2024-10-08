@@ -6,7 +6,7 @@ const UserMessage = ({ content }) => (
   <div className="flex justify-end mb-4">
     <div className="flex items-center">
       <div
-        className="flex items-left max-w-xs bg-blue-500 text-white p-3 rounded-lg shadow"
+        className="flex items-left max-w-xs bg-gray-200 text-gray-800 p-3 rounded-xl"
       >
         <p className="text-m">{content}</p>
       </div>

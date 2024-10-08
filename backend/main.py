@@ -1,5 +1,7 @@
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException
 from fastapi.params import Body
+from fastapi.middleware.cors import CORSMiddleware
+
 from pydantic import BaseModel
 from app.maps import geocode_postal_code, generate_map_html
 import pandas as pd
@@ -7,8 +9,10 @@ import pandas as pd
 from app.chat_manager import ChatManager
 from app.websocket_manager import WebSocketManager
 from app.upload_manager import UploadManager
-from app.utils import generate_session_obj, generate_main_agent_response_obj
+from app.utils import generate_session_obj, generate_main_agent_response_obj, map_std_category
 from dotenv import load_dotenv
+from app.search import search_fuzzy, search_embedding
+
 
 load_dotenv()
 
@@ -16,6 +20,17 @@ websocket_manager = WebSocketManager()
 upload_manager = UploadManager()
 
 app = FastAPI()
+origins = ["*"]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+
 output_path = "output/"
 chat_manager = ChatManager()
 
@@ -62,9 +77,22 @@ async def get_embedding():
 async def search_products_from_db(request: SearchRequest = Body(...)):
     product_name = request.product_name
     quantity = request.quantity
-    
-    print(product_name, quantity)
-    return product_name
+
+    # assuming the csv has standard categories - need to be fixed
+    df_database = pd.read_csv('app/data/df_all_products.csv')
+
+    # sel_category  = map_std_category(product_name)
+    product_std_category = await chat_manager.get_std_category(product_name=product_name)
+    # df_database = map_std_category(df_database)
+    df_result = search_embedding(product_name, product_std_category, df_database)
+    print(df_result)
+
+    # Clean the DataFrame to remove or replace non-compliant float values
+    df_result = df_result.replace([float('inf'), -float('inf')], None)  # Replace inf with None
+    df_result = df_result.dropna()  # Drop rows with NaN values
+
+    # Convert DataFrame to JSON and return
+    return df_result.to_dict(orient='records')  # Send as JSON response
 
 
 @app.websocket("/ws")

@@ -82,9 +82,9 @@ const AIMessage = ({ content }) => {
     <div className="flex justify-start mb-4">
       <div className="flex items-start">
         <div className="flex-shrink-0 mr-2 mt-1">
-          <FontAwesomeIcon icon={faChalkboardUser} className="text-gray-500" />
+          <FontAwesomeIcon icon={faChalkboardUser} className="text-white" />
         </div>
-        <div className="bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-100 p-3 rounded-lg shadow">
+        <div className="text-white dark:text-gray-100 p-3 rounded-xl">
           {renderContent()}
         </div>
       </div>

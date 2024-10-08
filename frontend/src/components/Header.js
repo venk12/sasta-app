@@ -81,8 +81,8 @@ const Header = ({isSocketConnected}) => {
             </Link> 
           </li>
           <li>
-            <span className='text-sm'>Server Status: </span>  
-            <span className={`text-sm ${isSocketConnected ? 'text-green-500' : 'text-red-500'}`}>
+            <span className='text-md'>Server Status: </span>  
+            <span className={`text-md ${isSocketConnected ? 'text-green-500' : 'text-red-500'}`}>
             {isSocketConnected ? 'Connected' : 'Not Connected'}
             </span>
           </li>
